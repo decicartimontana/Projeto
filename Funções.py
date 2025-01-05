@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import FreeSimpleGUI as sg
 
 
-#Carregar BD
+#----- Carregar BD -----
 def carregar_dataset(fnome):
     f = open(fnome, encoding="utf-8")
     bd = json.load(f)
@@ -13,36 +13,45 @@ def carregar_dataset(fnome):
         print(f"Dados carregados com sucesso. Foram lidas um total de {len(bd)} publicações.")
     return bd 
 
-#----- Armazenamento de Dados -----#
-
+#----- Armazenamento de Dados -----
 def guardar_dataset(nome,dataset):
     ficheiro = open(nome,'w',encoding='utf-8')
     json.dump(dataset,ficheiro,ensure_ascii=False,indent=2)
     ficheiro.close()
 
-#Consultar
+#----- Consultar Publicação -----
 def filtertitle(bd, titulo):
-    resultados = []
+    d = []
     titulo = titulo.lower()
     for pub in bd:
         if titulo in pub.get('title', '').lower():
-            resultados.append(pub)
-    return resultados
+            d.append(pub)
+    return d
 
 def filterauthor(bd, autor):
     d = []
+    autor = autor.lower()
     for pub in bd:
-        for a in pub['authors']:
-            if a.get('name') == autor:
+        autores_adicionados = False
+        authors = pub.get('authors', [])  
+        for a in authors:
+            name = a.get('name', '').lower()  
+            if autor in name and not autores_adicionados:
                 d.append(pub)
+                autores_adicionados = True  
     return d
 
-def filterafiliation(fnome, afiliação):
+def filterafiliation(bd, afiliação):
     d = []
-    for pub in fnome:
-        for a in pub['authors']:
-            if a.get("affiliation") == afiliação:
+    afiliação= afiliação.lower()
+    for pub in bd:
+        autores_adicionados = False
+        authors = pub.get('authors', [])  
+        for a in authors:
+            afiliaçãos = a.get('affiliation', '').lower()  
+            if afiliação in afiliaçãos and not autores_adicionados:
                 d.append(pub)
+                autores_adicionados = True  
     return d
 
 def filterdata(bd, data):
@@ -67,11 +76,11 @@ def filterpalavrachave(bd, palavraschave):
                         d.append(pub)
     return d
 
-##Ordenar publicações encontradas pelos títulos 
+#Ordenar publicações encontradas pelos títulos 
 def ordenatitle(d):
     return sorted(d, key = lambda x:x.get('title'))
 
-##Ordenar publicações encontradas pela data de publicação
+#Ordenar publicações encontradas pela data de publicação
 def ordenadate(d):
     date = []
     for pub in d:
@@ -100,25 +109,35 @@ def filtertitle_ordenadotitle(bd, titulo):
 
 def filterauthor_ordenadotitle(bd, autor):
     d = []
+    autor = autor.lower()
     for pub in bd:
-        for a in pub['authors']:
-            if a.get('name') == autor:
+        autores_adicionados = False
+        authors = pub.get('authors', [])  
+        for a in authors:
+            name = a.get('name', '').lower()  
+            if autor in name and not autores_adicionados:
                 d.append(pub)
+                autores_adicionados = True 
     return ordenatitle(d)
 
 def filterauthor_ordenadodate(bd, autor):
     d = []
+    autor = autor.lower()
     for pub in bd:
-        for a in pub['authors']:
-            if a.get('name') == autor:
+        autores_adicionados = False
+        authors = pub.get('authors', [])  
+        for a in authors:
+            name = a.get('name', '').lower()  
+            if autor in name and not autores_adicionados:
                 d.append(pub)
+                autores_adicionados = True 
     return ordenadate(d)
 
 def filterafiliation_ordenadotitle(fnome, afiliação):
     d = []
     for pub in fnome:
         for a in pub['authors']:
-            if a.get("affiliation") == afiliação:
+            if a.get("affiliation",'') == afiliação:
                 d.append(pub)
     return ordenatitle(d)
 
@@ -126,7 +145,7 @@ def filterafiliation_ordenadodate(fnome, afiliação):
     d = []
     for pub in fnome:
         for a in pub['authors']:
-            if a.get("affiliation") == afiliação:
+            if a.get("affiliation",'') == afiliação:
                 d.append(pub)
     return ordenadate(d)
 
@@ -173,13 +192,14 @@ def filterpalavrachave_ordenadotitle(bd, palavraschave):
                     if pal.strip().lower() == palavraschave.lower():  
                         d.append(pub)
     return ordenatitle(d)
-#Analisar publicações
+
+#----- Analisar publicações -----
 def listAuthors(BD):
     autores = []
     for pub in BD:
         for autor in pub['authors']:
             if autor["name"] not in autores:
-                autores.append(autor["name"])
+                autores.append(autor["name"].strip(".").strip(" "))
     return sorted(autores)
 
 def distribPub(BD):
@@ -276,22 +296,30 @@ def filtrar_publicacoes(filtro, valor, BD):
     dados_filtrados = []
     for pub in BD:
         campo = pub.get(filtro)
-        
-        if filtro == 'authors':  
-            if isinstance(campo, list):  
-                
-                autores_correspondentes = [
-                    autor for autor in campo 
-                    if isinstance(autor, dict) and valor.lower() in autor.get('name', '').lower()
-                ]
-                if autores_correspondentes:  
+
+        # Verifica para filtro de autores
+        if filtro == 'name':
+            autores = pub.get('authors') or []
+            for autor in autores:  # Itera sobre os autores
+                nome = autor.get('name') or ""
+                if valor.lower() in nome.lower() and pub not in dados_filtrados:
                     dados_filtrados.append(pub)
-        
-        elif isinstance(campo, str):  
-            if valor.lower() in campo.lower():
+
+        elif filtro == 'affiliation':
+            autores = pub.get('authors') or []
+            for autor in autores:  # Itera sobre os autores
+                afiliacao = autor.get('affiliation') or ""
+                if valor.lower() in afiliacao.lower() and pub not in dados_filtrados:
+                    dados_filtrados.append(pub)
+
+        # Verifica para outros campos
+        elif campo and valor.lower() in str(campo).lower():
+            if pub not in dados_filtrados:
                 dados_filtrados.append(pub)
-    
+
     return dados_filtrados
+
+
 
 #------ Exportação Parcial de Dados------#
 
@@ -363,9 +391,9 @@ def distribpubporano(fnome):
     return dict(lista)
 
 import matplotlib.pyplot as plt
-def pubano(fnome):
-    valores = list(distribpubporano(fnome).values())
-    labels = list(distribpubporano(fnome).keys())
+def pubano(BD):
+    valores = list(distribpubporano(BD).values())
+    labels = list(distribpubporano(BD).keys())
 
     plt.figure(figsize=(5, 5))
     plt.bar(labels, valores)
@@ -469,9 +497,9 @@ import json
 def topOrdena(par):
     return par[1]
 
-def distribpalavra(fnome):
+def distribpalavra20(bd):
     d = {}
-    for pub in fnome:
+    for pub in bd:
         palavras = pub.get("keywords")
         if palavras:
             listapal = palavras.split(",")
@@ -486,11 +514,27 @@ def distribpalavra(fnome):
         di = dict(top20)
     return di
 
+def distribpalavra(bd):
+    d = {}
+    for pub in bd:
+        palavras = pub.get("keywords")
+        if palavras:
+            listapal = palavras.split(",")
+            for pal in listapal:
+                pal = pal.strip().strip(".")
+                if pal not in d:
+                    d[pal] = 1
+                else:
+                    d[pal] = d[pal] + 1
+        ordena = sorted(list(d.items()), key = topOrdena, reverse = True)
+        di = dict(ordena)
+    return list(di.keys())
+
 import matplotlib.pyplot as plt
 
 def palavrafreq(fnome):
-    valores = list(distribpalavra(fnome).values())
-    labels = list(distribpalavra(fnome).keys())
+    valores = list(distribpalavra20(fnome).values())
+    labels = list(distribpalavra20(fnome).keys())
 
     plt.figure(figsize=(5, 5))
     plt.bar(labels, valores, color = "gold")
@@ -568,245 +612,86 @@ def listanos(fnome):
                 a.append(ano) 
     return sorted(a)
 
-def consultar():
-    if eventos == "-CONSULTAR-":
-        window["-DADOS-"].update("Preparar para consultar...")
-        if BD is None:
-            janelaErro("Introduza primeiro uma base de dados!")
-            return
-        elif Guardada == 0:
-            janelaErro("Guarde primeiro a base de dados!")
-            return
+#Atualizar
 
-        layout_consultar = [
-            [sg.Text('Deseja consultar a publicação por:', size=(45, 1), expand_x=True, font=("Cooper Hewitt", 15, "bold"), 
-                    background_color=claro, text_color=escuro)],
-            [sg.Button('Título', size=(17, 1), button_color=(claro, escuro), font=("Cooper Hewitt", 12)),
-            sg.Button('Autor', size=(17, 1), button_color=(claro, escuro), font=("Cooper Hewitt", 12)),
-            sg.Button('Afiliação', size=(17, 1), button_color=(claro, escuro), font=("Cooper Hewitt", 12)),
-            sg.Button('Data de publicação', size=(17, 1), button_color=(claro, escuro), font=("Cooper Hewitt", 12)),
-            sg.Button('Palavras-chave', size=(17, 1), button_color=(claro, escuro), font=("Cooper Hewitt", 12)),
-            sg.Button('Retornar ao Menu', font=("Cooper Hewitt", 12), size=(17, 1), button_color=(claro, tijolo))]
-        ]
+def AtualizarPublicacoes(publicacoes, titulo, novos_dados):
+    atualizado = False
+    for publicacao in publicacoes:
+        if publicacao['title'] == titulo:
+            if 'publish_date' in novos_dados:
+                publicacao['publish_date'] = novos_dados['publish_date']
+            if 'abstract' in novos_dados:
+                publicacao['abstract'] = novos_dados['abstract']
+            if 'keywords' in novos_dados:
+                publicacao['keywords'] = novos_dados['keywords']
+            if 'authors' in novos_dados:
+                publicacao['authors'] = novos_dados['authors']
+            if 'doi' in novos_dados:
+                publicacao['doi'] = novos_dados['doi']
+            if 'pdf' in novos_dados:
+                publicacao['pdf'] = novos_dados['pdf']
+            if 'url' in novos_dados:
+                publicacao['url'] = novos_dados['url']
+            atualizado = True
+    if not atualizado:
+        print(f"Publicação com título '{titulo}' não encontrada.")
+    return publicacoes
 
-        window8 = sg.Window(title="Consultar Publicação", resizable=False, background_color=claro).Layout(layout_consultar)
+def novos_dados():
+    print('Introduza os novos dados.') 
+    resumo = input('Resumo: ')
+    palavras_chave = input('Palavras-chave (separadas por vírgula): ').split(',')
+    autores_afiliacoes = [] 
+    n = int(input('Quantos autores estão associados? '))
+    for i in range(n):
+        autor = input(f'Nome do autor {i+1}: ')
+        afiliacao = input(f'Afiliação de {autor}: ')
+        autores_afiliacoes.append({'name': autor, 'affiliation': afiliacao})
+    data_publicacao = input('Data de publicação (AAAA-MM-DD): ')
+    
+    
+    dados = {
+        'publish_date': data_publicacao,
+        'abstract': resumo,
+        'keywords': [kw.strip() for kw in palavras_chave],
+        'authors': autores_afiliacoes,
+        'doi': input('DOI: '),
+        'pdf': input('PDF: '),
+        'url': input('URL: ')
+    }
+    return dados
 
-        continue_reading = True
-        while continue_reading:
-            event, values = window8.read()
-            if event in (sg.WINDOW_CLOSED, 'Retornar ao Menu'):
-                continue_reading = False  
-                window8.close()
-            elif event == "Título":
-                resultados = []
-                formLayout = [
-                    [sg.Text('Título:', size=(15, 1), font=("Cooper Hewitt", 12, "bold"), justification="left", background_color=claro, text_color=escuro),
-                    sg.InputText(key='-TITULO-', size=(65, 10))],
-                    [sg.Text('Deseja ordenar por data de publicação ou por título?', font=("Cooper Hewitt", 12), background_color=claro, text_color=escuro),
-                    sg.Radio("Data de publicação", "OPCAO", default=False, key="-OPC1-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro),
-                    sg.Radio("Título", "OPCAO", default=True, key="-OPC2-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro)],
-                    [sg.Button('Consultar', button_color=(claro, escuro), font=("Cooper Hewitt", 12))],
-                    [sg.Listbox(values=resultados, size=(80, 10), key="-RESULTADOS-", horizontal_scroll=True)],
-                    [sg.Button('Cancelar', button_color=(claro, tijolo), font=("Cooper Hewitt", 12))]
-                ]
-
-                wform = sg.Window('Digite o título', formLayout, size=(700, 400), modal=True, resizable=False, background_color=claro)
-                reading_form = True
-
-                while reading_form:
-                    event_form, values_form = wform.read()
-
-                    if event_form in (sg.WINDOW_CLOSED, 'Cancelar'):
-                        reading_form = False  
-                        wform.close()
-                    elif event_form == 'Consultar':
-                        if values_form['-TITULO-']:
-                            if values_form['-OPC1-']:
-                                res = fc.filtertitle_ordenadodate(BD, values_form['-TITULO-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-
-                            else:
-                                res = fc.filtertitle_ordenadotitle(BD, values_form['-TITULO-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
+def alterarDetalhesTarefa(novo_titulo,novo_resumo,novas_palavras,novos_autores,nova_data,novo_doi, novo_pdf,novo_url, BD):
+    
+    for pub in BD:
+            pub['title'] = novo_titulo
+            pub['abastract'] = novo_resumo
+            pub['keywords'] = novas_palavras
+            pub['authors'] = novos_autores
+            pub['publish_date'] = nova_data
+            pub['doi'] = novo_doi
+            pub['pdf'] = novo_pdf
+            pub['url'] = novo_url
 
 
-                    
-            elif event == "Autor":
-                resultados = []
-                formLayout = [
-                    [sg.Text('Autor:', size=(15, 1), font=("Cooper Hewitt", 12, "bold"), justification="left", background_color=claro, text_color=escuro),
-                    sg.InputText(key='-AUTOR-', size=(65, 10))],
-                    [sg.Text('Deseja ordenar por data de publicação ou por título?', font=("Cooper Hewitt", 12), background_color=claro, text_color=escuro),
-                    sg.Radio("Data de publicação", "OPCAO", default=False, key="-OPC1-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro),
-                    sg.Radio("Título", "OPCAO", default=True, key="-OPC2-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro)],
-                    [sg.Button('Consultar', button_color=(claro, escuro), font=("Cooper Hewitt", 12))],
-                    [sg.Listbox(values=resultados, size=(80, 10), key="-RESULTADOS-", horizontal_scroll=True)],
-                    [sg.Button('Cancelar', button_color=(claro, tijolo), font=("Cooper Hewitt", 12))]
-                ]
+            return True  
 
-                wform = sg.Window('Digite o autor', formLayout, size=(700, 400), modal=True, resizable=False, background_color=claro)
-                reading_form = True
+    return False 
 
-                while reading_form:
-                    event_form, values_form = wform.read()
+def alterarDetalhesTarefa(novo_titulo,novo_resumo,novas_palavras,novos_autores,nova_data,novo_doi, novo_pdf,novo_url, BD):
+    
+    for pub in BD:
+            pub['title'] = novo_titulo
+            pub['abastract'] = novo_resumo
+            pub['keywords'] = novas_palavras
+            pub['authors'] = novos_autores
+            pub['publish_date'] = nova_data
+            pub['doi'] = novo_doi
+            pub['pdf'] = novo_pdf
+            pub['url'] = novo_url
 
-                    if event_form in (sg.WINDOW_CLOSED, 'Cancelar'):
-                        reading_form = False  
-                        wform.close()
-                    elif event_form == 'Consultar':
-                        if values_form['-AUTOR-']:
-                            if values_form['-OPC1-']:
-                                res = fc.filterauthor_ordenadodate(BD, values_form['-AUTOR-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
 
-                            else:
-                                res = fc.filterauthor_ordenadotitle(BD, values_form['-AUTOR-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-                
-            elif event == "Afiliação":
-                resultados = []
-                formLayout = [
-                    [sg.Text('Afiliação:', size=(15, 1), font=("Cooper Hewitt", 12, "bold"), justification="left", background_color=claro, text_color=escuro),
-                    sg.InputText(key='-AFILIAÇÃO-', size=(65, 10))],
-                    [sg.Text('Deseja ordenar por data de publicação ou por título?', font=("Cooper Hewitt", 12), background_color=claro, text_color=escuro),
-                    sg.Radio("Data de publicação", "OPCAO", default=False, key="-OPC1-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro),
-                    sg.Radio("Título", "OPCAO", default=True, key="-OPC2-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro)],
-                    [sg.Button('Consultar', button_color=(claro, escuro), font=("Cooper Hewitt", 12))],
-                    [sg.Listbox(values=resultados, size=(80, 10), key="-RESULTADOS-", horizontal_scroll=True)],
-                    [sg.Button('Cancelar', button_color=(claro, tijolo), font=("Cooper Hewitt", 12))]
-                ]
+            return True  
 
-                wform = sg.Window('Digite a afiliação', formLayout, size=(700, 400), modal=True, resizable=False, background_color=claro)
-                reading_form = True
+    return False 
 
-                while reading_form:
-                    event_form, values_form = wform.read()
-
-                    if event_form in (sg.WINDOW_CLOSED, 'Cancelar'):
-                        reading_form = False  
-                        wform.close()
-                    elif event_form == 'Consultar':
-                        if values_form['-AFILIAÇÃO-']:
-                            if values_form['-OPC1-']:
-                                res = fc.filterafiliation_ordenadodate(BD, values_form['-AFILIAÇÃO-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-
-                            else:
-                                res = fc.filterafiliation_ordenadotitle(BD, values_form['-AFILIAÇÃO-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-                
-            elif event == 'Data de publicação': 
-                resultados =[]
-                layout_date = [
-                    [sg.Text('Data de publicação', size=(25, 1), expand_x=True, font=("Cooper Hewitt", 15, "bold"), background_color=claro, text_color=escuro)],
-                    [sg.CalendarButton('Escolha a Data', target='-DATA-', font=("Cooper Hewitt", 12), button_color=(claro, escuro)),
-                    sg.InputText("", key='-DATA-', readonly=True, font=("Cooper Hewitt", 12))],
-                    [sg.Text('Deseja ordenar por data de publicação ou por título?', font=("Cooper Hewitt", 12), background_color=claro, text_color=escuro),
-                    sg.Radio("Data de publicação", "OPCAO", default=False, key="-OPC1-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro),
-                    sg.Radio("Título", "OPCAO", default=True, key="-OPC2-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro)],
-                    [sg.Button('Consultar', button_color=(claro, escuro), font=("Cooper Hewitt", 12))],
-                    [sg.Listbox(values=resultados, size=(80, 10), key="-RESULTADOS-", horizontal_scroll=True)],
-                    [sg.Button('Cancelar', button_color=(claro, tijolo), font=("Cooper Hewitt", 12))]
-                ]
-
-                wform = sg.Window('Digite a data de publicação', layout_date, size=(700, 400), modal=True, background_color=claro)
-                
-                reading_form = True
-                while reading_form:
-                    event_form, values_form = wform.read()
-
-                    if event_form in (sg.WINDOW_CLOSED, 'Cancelar'):
-                        reading_form = False  
-                        wform.close()
-                    elif event_form == 'Consultar':
-                        if values_form['-DATA-']:
-                            if values_form['-OPC1-']:
-                                res = fc.filterdata_ordenadodate(BD, values_form['-DATA-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-
-                            else:
-                                res = fc.filterdata_ordenadotitle(BD, values_form['-DATA-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-                
-
-            elif event == "Palavras-chave":
-                resultados = []
-                formLayout = [
-                    [sg.Text('Palavras-chave:', size=(15, 1), font=("Cooper Hewitt", 12, "bold"), justification="left", background_color=claro, text_color=escuro),
-                    sg.InputText(key='-PALAVRAS-', size=(65, 10))],
-                    [sg.Text('Deseja ordenar por data de publicação ou por título?', font=("Cooper Hewitt", 12), background_color=claro, text_color=escuro),
-                    sg.Radio("Data de publicação", "OPCAO", default=False, key="-OPC1-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro),
-                    sg.Radio("Título", "OPCAO", default=True, key="-OPC2-", font=("Cooper Hewitt", 12), background_color=escuro, text_color=claro)],
-                    [sg.Button('Consultar', button_color=(claro, escuro), font=("Cooper Hewitt", 12))],
-                    [sg.Listbox(values=resultados, size=(80, 10), key="-RESULTADOS-", horizontal_scroll=True)],
-                    [sg.Button('Cancelar', button_color=(claro, tijolo), font=("Cooper Hewitt", 12))]
-                ]
-
-                wform = sg.Window('Digite as palavras-chaves', formLayout, size=(700, 400), modal=True, resizable=False, background_color=claro)
-                reading_form = True
-
-                while reading_form:
-                    event_form, values_form = wform.read()
-
-                    if event_form in (sg.WINDOW_CLOSED, 'Cancelar'):
-                        reading_form = False  
-                        wform.close()
-                    elif event_form == 'Consultar':
-                        if values_form['-PALAVRAS-']:
-                            if values_form['-OPC1-']:
-                                res = fc.filterpalavrachave_ordenadodate(BD, values_form['-PALAVRAS-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
-
-                            else:
-                                res = fc.filterpalavrachave_ordenadotitle(BD, values_form['-PALAVRAS-'])
-                                if res:
-                                    resultados.extend(res)  
-                                    window["-DADOS-"].update("Publicação consultada com sucesso!")
-                                else:
-                                    resultados.append("A publicação que procurou não existe!")
-                                wform['-RESULTADOS-'].update(values=resultados)
