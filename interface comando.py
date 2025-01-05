@@ -749,6 +749,46 @@ def interface_comando():
         else:
             print(f"Não existem publicações com esse(a) '{criterio}'.")
 
+    #Funçoes de estatistica
+
+    ##Distribuição de publicações por ano
+    def topordena(par):
+        return par[0]
+
+    def distribpubporano(fnome):
+        d = {}
+        for pub in fnome:
+            data = pub.get('publish_date')
+            if data:
+                ano = data.split("-")[0]
+                if ano not in d:
+                    d[ano] = 1
+                else:
+                    d[ano] = d[ano] + 1
+        lista = sorted(list(d.items()), key = topordena)
+        return dict(lista)
+
+    
+    def pubano(fnome):
+        valores = list(distribpubporano(fnome).values())
+        labels = list(distribpubporano(fnome).keys())
+
+        plt.figure(figsize=(5, 5))
+        plt.bar(labels, valores)
+
+        
+        plt.title('Distribuição de publicações por ano')
+
+        
+        plt.xticks(rotation=45, ha='right')
+
+        for i, v in enumerate(valores):
+            plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
+
+        
+        plt.tight_layout()
+        plt.show()
+
     #----------Estatística--------------------------------
     def estatística(dataset):
         print("\n===Selecione a oção que deseja ===")
@@ -764,43 +804,8 @@ def interface_comando():
         
         while escolhaestatistica!="7":
             if escolhaestatistica=="1":
-                ##Distribuição de publicações por ano
-                def topordena(par):
-                    return par[0]
-
-                def distribpubporano(fnome):
-                    d = {}
-                    for pub in fnome:
-                        data = pub.get('publish_date')
-                        if data:
-                            ano = data.split("-")[0]
-                            if ano not in d:
-                                d[ano] = 1
-                            else:
-                                d[ano] = d[ano] + 1
-                    lista = sorted(list(d.items()), key = topordena)
-                    return dict(lista)
-
+                pubano(dataset)
                 
-                def pubano(fnome):
-                    valores = list(distribpubporano(fnome).values())
-                    labels = list(distribpubporano(fnome).keys())
-
-                    plt.figure(figsize=(5, 5))
-                    plt.bar(labels, valores)
-
-                    
-                    plt.title('Distribuição de publicações por ano')
-
-                    
-                    plt.xticks(rotation=45, ha='right')
-
-                    for i, v in enumerate(valores):
-                        plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
-
-                    
-                    plt.tight_layout()
-                    plt.show()
 
 
 
@@ -814,70 +819,70 @@ def interface_comando():
     def remover_pub(bd):
         # Chama a função de consulta para buscar a publicação conforme o critério (Título, Autor, etc.)
         pub = consultar_pub(bd)
-        
-        if pub:  # Se alguma publicação foi encontrada
-            # Identifica o critério utilizado para consulta
-            criterio = ""
-            if 'title' in pub:
-                criterio = pub['title']  # Caso tenha sido encontrado pelo título
-            elif 'authors' in pub:
-                criterio = pub['authors'][0]['name']  # Caso tenha sido encontrado pelo autor
-            elif 'affiliation' in pub:
-                criterio = pub['affiliation']  # Caso tenha sido encontrado pela afiliação
-            elif 'publish_date' in pub:
-                criterio = pub['publish_date']  # Caso tenha sido encontrado pela data
-            elif 'keywords' in pub:
-                criterio = pub['keywords']  # Caso tenha sido encontrado pelas palavras-chave
-            
-            confirmacao = input(f"\nTem certeza de que deseja remover as publicações relacionadas a '{criterio}'? (Sim/Não): ").lower().strip()
-            
-            if confirmacao == 'sim':
-                publicacoes_removidas = 0
+        for publicaçao in pub:
+            if publicaçao:  # Se alguma publicação foi encontrada
+                # Identifica o critério utilizado para consulta
+                criterio = ""
+                if 'title' in publicaçao:
+                    criterio = publicaçao['title']  # Caso tenha sido encontrado pelo título
+                elif 'authors' in publicaçao:
+                    criterio = publicaçao['authors'][0]['name']  # Caso tenha sido encontrado pelo autor
+                elif 'affiliation' in publicaçao:
+                    criterio = publicaçao['affiliation']  # Caso tenha sido encontrado pela afiliação
+                elif 'publish_date' in publicaçao:
+                    criterio = publicaçao['publish_date']  # Caso tenha sido encontrado pela data
+                elif 'keywords' in publicaçao:
+                    criterio = publicaçao['keywords']  # Caso tenha sido encontrado pelas palavras-chave
                 
-                # Remover as publicações baseadas no critério de consulta
-                for i, p in enumerate(bd['publicacoes']):
-                    # Remover por título
-                    if 'title' in pub and p['title'].strip().lower() == pub['title'].strip().lower():
-                        bd['publicacoes'].pop(i)
-                        publicacoes_removidas += 1
-                        print(f"Publicação '{p['title']}' removida com sucesso.")
+                confirmacao = input(f"\nTem certeza de que deseja remover as publicações relacionadas a '{criterio}'? (Sim/Não): ").lower().strip()
+                
+                if confirmacao == 'sim':
+                    publicacoes_removidas = 0
                     
-                    # Remover por autor
-                    elif 'authors' in pub:
-                        for autor in p['authors']:
-                            if autor['name'].strip().lower() == pub['authors'][0]['name'].strip().lower():
-                                bd['publicacoes'].pop(i)
-                                publicacoes_removidas += 1
-                                print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso.")
-                                break
-                    
-                    # Remover por afiliação
-                    elif 'affiliation' in pub and p.get('authors'):
-                        for autor in p['authors']:
-                            if 'affiliation' in autor and autor['affiliation'].strip().lower() == pub['affiliation'].strip().lower():
-                                bd['publicacoes'].pop(i)
-                                publicacoes_removidas += 1
-                                print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso devido à afiliação.")
-                                break
+                    # Remover as publicações baseadas no critério de consulta
+                    for i, p in enumerate(bd['publicacoes']):
+                        # Remover por título
+                        if 'title' in pub and p['title'].strip().lower() == pub['title'].strip().lower():
+                            bd['publicacoes'].pop(i)
+                            publicacoes_removidas += 1
+                            print(f"Publicação '{p['title']}' removida com sucesso.")
+                        
+                        # Remover por autor
+                        elif 'authors' in pub:
+                            for autor in p['authors']:
+                                if autor['name'].strip().lower() == pub['authors'][0]['name'].strip().lower():
+                                    bd['publicacoes'].pop(i)
+                                    publicacoes_removidas += 1
+                                    print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso.")
+                                    break
+                        
+                        # Remover por afiliação
+                        elif 'affiliation' in pub and p.get('authors'):
+                            for autor in p['authors']:
+                                if 'affiliation' in autor and autor['affiliation'].strip().lower() == pub['affiliation'].strip().lower():
+                                    bd['publicacoes'].pop(i)
+                                    publicacoes_removidas += 1
+                                    print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso devido à afiliação.")
+                                    break
 
-                    # Remover por data de publicação
-                    elif 'publish_date' in pub and p['publish_date'] == pub['publish_date']:
-                        bd['publicacoes'].pop(i)
-                        publicacoes_removidas += 1
-                        print(f"Publicação '{p['title']}' removida com sucesso pela data de publicação.")
-                    
-                    # Remover por palavras-chave
-                    elif 'keywords' in pub and pub['keywords'].lower() in p.get('keywords', "").lower():
-                        bd['publicacoes'].pop(i)
-                        publicacoes_removidas += 1
-                        print(f"Publicação '{p['title']}' removida com sucesso pelas palavras-chave.")
-                    
-                if publicacoes_removidas == 0:
-                    print(f"Nenhuma publicação encontrada para o critério '{criterio}'.")
+                        # Remover por data de publicação
+                        elif 'publish_date' in pub and p['publish_date'] == pub['publish_date']:
+                            bd['publicacoes'].pop(i)
+                            publicacoes_removidas += 1
+                            print(f"Publicação '{p['title']}' removida com sucesso pela data de publicação.")
+                        
+                        # Remover por palavras-chave
+                        elif 'keywords' in pub and pub['keywords'].lower() in p.get('keywords', "").lower():
+                            bd['publicacoes'].pop(i)
+                            publicacoes_removidas += 1
+                            print(f"Publicação '{p['title']}' removida com sucesso pelas palavras-chave.")
+                        
+                    if publicacoes_removidas == 0:
+                        print(f"Nenhuma publicação encontrada para o critério '{criterio}'.")
+                else:
+                    print("Remoção cancelada.")
             else:
-                print("Remoção cancelada.")
-        else:
-            print("Nenhuma publicação encontrada para remoção.")
+                print("Nenhuma publicação encontrada para remoção.")
 
     
 
