@@ -1214,8 +1214,10 @@ def interface_comando():
             else:
                 print("Carregue e salve uma base de dados primeiro.")
         elif op == "9":
-            estatística(dataset)
-                    
+            if carregada_e_guardada:
+                estatística(dataset)
+            else:
+                print("Carregue e salve uma base de dados primeiro.")
         elif op == "10":
             if carregada_e_guardada:
                 remover_pub(dataset)
