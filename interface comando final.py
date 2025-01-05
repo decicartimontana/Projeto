@@ -4,6 +4,8 @@ import tkinter as tk
 import os
 from datetime import datetime
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
+import random
 
     
 
@@ -440,23 +442,27 @@ def interface_comando():
             print("2. Ordenar por ordem alfabética.")
             resanalise=input("Digite o número correspondente ao método de ordenação que deseja.")
             if resanalise=="1":
-                autor=input("Digite o autor da publicação para consulta:")
-                res=articleporathor(bd, autor)
+                res=distribPub(bd)
                 if res:
-                    print("\nPublicações encontradas:")
-                    for pub in res:
-                        print(pub)  
-                else:
-                    print("Nenhuma publicação encontrada com o autor especificado.")
+                    print("\nLista de Autores:")
+                    print(res)
+                    autor=input("Digite o autor da publicação para consulta:")
+                    if autor:
+                        p = articleporathor(bd, autor)
+                        print(p)  
+                    else:
+                        print("Nenhuma publicação encontrada com o autor especificado.")
             elif resanalise=="2":
-                autor=input("Digite o autor da publicação para consulta:")
-                res=articleporathor(bd, autor)
+                res=listAuthors(bd)
                 if res:
-                    print("\nPublicações encontradas:")
-                    for pub in res:
-                        print(pub)  
-                else:
-                    print("Nenhuma publicação encontrada com o autor especificado.")
+                    print("\nLista de Autores:")
+                    print(res)
+                    autor=input("Digite o autor da publicação para consulta:")
+                    if autor:
+                        p = articleporathor(bd, autor)
+                        print(p) 
+                    else:
+                        print("Nenhuma publicação encontrada com o autor especificado.")
             else:
                 print("Opção inválida.")
         elif escolha_metodo_analise=="2":
@@ -465,24 +471,28 @@ def interface_comando():
             print("2. Ordenar por ordem alfabética.")
             resanalise2=input("Digite o número correspondente ao método de ordenação que deseja.")
             if resanalise2=="1":
-                palavraschave=input("Digite as palvras-chave para consulta:")
-                res=articleporpal(bd, palavraschave)
+                res=distribpalavra(bd)
                 if res:
-                    print("\nPublicações encontradas:")
-                    for pub in res:
-                        print(pub)  
-                else:
-                    print("Nenhuma publicação encontrada com o autor especificado.")
+                    print("\nLista de palavras-chave:")
+                    print(res)
+                    palavraschave=input("Digite as palvras-chave para consulta:")
+                    if palavraschave:
+                        p = articleporpal(bd, palavraschave)
+                        print(p) 
+                    else:
+                        print("Nenhuma publicação encontrada com o autor especificado.")
 
             elif resanalise2=="2":
-                palavraschave=input("Digite as palvras-chave para consulta:")
-                res=articleporpal(bd, palavraschave)
+                res=listKeywords(bd)
                 if res:
-                    print("\nPublicações encontradas:")
-                    for pub in res:
-                        print(pub)  
-                else:
-                    print("Nenhuma publicação encontrada com o autor especificado.")
+                    print("\nLista de palavras-chave:")
+                    print(res)
+                    palavraschave=input("Digite as palvras-chave para consulta:")
+                    if palavraschave:
+                        p = articleporpal(bd, palavraschave)
+                        print(p)  
+                    else:
+                        print("Nenhuma publicação encontrada com o autor especificado.")
             else:
                 print("Opção Inválida.")
         else:
@@ -531,119 +541,117 @@ def interface_comando():
             print("A exportação da publicação foi cancelada.")
 
     #-----Atualizar Publicações------##
-    def alterar_informacoes(dados):
-        while True:
-            print("\n===== Alterar Informações =====")
-            
-            # Exibir as informações atuais da publicação
-            if len(dados) == 0:
-                print("Nenhuma publicação disponível.")
-                return
+    def alterar_informacoes(dataset):
+        """
+        Permite alterar informações de uma publicação com base em um critério.
+        """
+        criterio = input("Indique o parâmetro pelo qual pretende buscar o documento (title, abstract, keywords, doi, authors, url, pdf, publish_date): ").strip().lower()
 
-            # Exibir todas as publicações
-            for pub in dados:  # dados é uma lista de dicionários
-                exibir_resultados(pub)  # Exibe cada publicação individualmente
+        if criterio not in ['title', 'abstract', 'keywords', 'doi', 'authors', 'url', 'pdf', 'publish_date']:
+            print("O parâmetro inserido não é válido.")
+            return
 
-            # Obter o ID da publicação ou o título para edição
-            while True:
-                id_publicacao = input("\nDigite o ID da publicação que deseja alterar (ou pressione Enter para sair): ")
-                if not id_publicacao:
-                    return  # Se pressionar Enter, sai da função
-                if id_publicacao.isdigit():
-                    id_publicacao = int(id_publicacao)
-                    # Procurar o ID na lista de publicações
-                    publicacao_encontrada = None
-                    for pub in dados:
-                        if pub["id"] == id_publicacao:
-                            publicacao_encontrada = pub
-                            break
-                    
-                    if publicacao_encontrada:
-                        break
-                    else:
-                        print(f"ID '{id_publicacao}' não encontrado. Tente novamente.")
+        valor = input(f"Informe o valor do parâmetro '{criterio}': ").strip().lower()
+        if not valor:
+            print("Valor inválido. Operação cancelada.")
+            return
+
+        publicacoes_encontradas = []
+        for publicacao in dataset:
+            if criterio == 'title' and valor in publicacao.get('title', '').strip().lower():
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'abstract' and valor in publicacao.get('abstract', '').strip().lower():
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'keywords' and valor in [kw.lower().strip() for kw in publicacao.get('keywords', '').split(",")]:
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'doi' and publicacao.get('doi', '').strip().lower() == valor:
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'authors' and any(valor == autor['name'].strip().lower() for autor in publicacao.get('authors', [])):
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'url' and valor in publicacao.get('url', '').strip().lower():  # Ajustando para buscar a URL corretamente
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'pdf' and valor in publicacao.get('pdf', '').strip().lower():  # Ajustando para buscar o PDF corretamente
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'publish_date' and publicacao.get('publish_date', '').strip() == valor:
+                publicacoes_encontradas.append(publicacao)
+
+        if not publicacoes_encontradas:
+            print("Nenhuma publicação encontrada com o critério informado.")
+            return
+
+        alterada = False
+        for pub in publicacoes_encontradas:
+            if not alterada:
+                print(f"\nPublicação encontrada: {pub}")
+                confirmacao = input("Confirma ser esta a publicação que pretende alterar? (s/n): ").strip().lower()
+                if confirmacao == 's':
+                    print("\nEscolha o que deseja alterar:")
+                    print("1. Título")
+                    print("2. Resumo")
+                    print("3. Palavras-chave")
+                    print("4. Autores")
+                    print("5. Data de Publicação")
+                    print("6. URL")
+                    print("0. Finalizar Alterações")
+
+                    alteracoes_feitas = False  # Flag para verificar se houve alterações
+                    while not alteracoes_feitas:
+                        escolha_opcao = input("\nDigite o número correspondente à opção desejada: ")
+                        if escolha_opcao == "1":
+                            novo_titulo = input("Digite o novo título: ")
+                            pub["title"] = novo_titulo
+                            print("Título alterado com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "2":
+                            novo_resumo = input("Digite o novo resumo: ")
+                            pub["abstract"] = novo_resumo
+                            print("Resumo alterado com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "3":
+                            novas_palavras_chave = input("Digite as novas palavras-chave separadas por vírgula: ")
+                            pub["keywords"] = novas_palavras_chave.split(",")
+                            print("Palavras-chave alteradas com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "4":
+                            novos_autores = []
+                            while True:
+                                autor_nome = input("Digite o nome do autor (ou pressione Enter para terminar): ")
+                                if not autor_nome:
+                                    break
+                                autor_afiliacao = input(f"Digite a afiliação de {autor_nome}: ")
+                                autores_dict = {
+                                    "name": autor_nome,
+                                    "affiliation": autor_afiliacao
+                                }
+                                novos_autores.append(autores_dict)
+                            pub["authors"] = novos_autores
+                            print("Autores alterados com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "5":
+                            nova_data_publicacao = input("Digite a nova data de publicação (no formato YYYY-MM-DD): ")
+                            pub["publish_date"] = nova_data_publicacao
+                            print("Data de publicação alterada com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "6":
+                            nova_url = input("Digite a nova URL: ")
+                            pub["url"] = nova_url
+                            print("URL alterada com sucesso.")
+                            alteracoes_feitas = True
+                        elif escolha_opcao == "0":
+                            print("\nAlterações finalizadas.")
+                            alterada = True
+                            alteracoes_feitas = True  # Finaliza o loop de alterações
+                        else:
+                            print("Opção inválida. Tente novamente.")
+                        
+                    if alterada:  
+                        return
+
                 else:
-                    print("ID inválido. Digite um número inteiro válido.")
+                    print("Publicação não alterada.")
 
-            # A publicação encontrada para alteração
-            publicacao_alterar = publicacao_encontrada  # Neste caso, estamos lidando com uma única publicação encontrada
 
-            while True:
-                print("\nEscolha o que deseja alterar:")
-                print("1. Título")
-                print("2. Resumo")
-                print("3. Palavras-chave")
-                print("4. Autores")
-                print("5. Data de Publicação")
-                print("6. URL")
-                print("0. Finalizar Alterações")
 
-                escolha_opcao = input("\nDigite o número correspondente à opção desejada: ")
-
-                if escolha_opcao == "1":
-                    novo_titulo = input("Digite o novo título: ")
-                    publicacao_alterar["title"] = novo_titulo
-                    print("Título alterado com sucesso.")
-                elif escolha_opcao == "2":
-                    novo_resumo = input("Digite o novo resumo: ")
-                    publicacao_alterar["abstract"] = novo_resumo
-                    print("Resumo alterado com sucesso.")
-                elif escolha_opcao == "3":
-                    novas_palavras_chave = input("Digite as novas palavras-chave separadas por vírgula: ")
-                    publicacao_alterar["keywords"] = novas_palavras_chave.split(",")
-                    print("Palavras-chave alteradas com sucesso.")
-                elif escolha_opcao == "4":
-                    novos_autores = []
-                    while True:
-                        autor_nome = input("Digite o nome do autor (ou pressione Enter para terminar): ")
-                        if not autor_nome:
-                            break
-                        autor_afiliacao = input(f"Digite a afiliação de {autor_nome}: ")
-                        autores_dict = {
-                            "name": autor_nome,
-                            "affiliation": autor_afiliacao
-                        }
-                        novos_autores.append(autores_dict)
-                    publicacao_alterar["authors"] = novos_autores
-                    print("Autores alterados com sucesso.")
-                elif escolha_opcao == "5":
-                    nova_data_publicacao = input("Digite a nova data de publicação (no formato YYYY-MM-DD): ")
-                    publicacao_alterar["publish_date"] = nova_data_publicacao
-                    print("Data de publicação alterada com sucesso.")
-                elif escolha_opcao == "6":
-                    nova_url = input("Digite a nova URL: ")
-                    publicacao_alterar["url"] = nova_url
-                    print("URL alterada com sucesso.")
-                elif escolha_opcao == "0":
-                    print("\nAlterações finalizadas.")
-                    return  # Sai da função ao finalizar as alterações
-                else:
-                    print("Opção inválida. Tente novamente.")
-    
-    def exibir_resultados(publicacao):
-        # Função para exibir os dados no formato desejado
-        print("\nTítulo:", publicacao.get("title", "Título não disponível"))
-        print("Resumo:", publicacao.get("abstract", "Resumo não disponível"))
-        
-        # Exibe as palavras-chave com verificação de chave
-        palavras_chave = publicacao.get("keywords", [])
-        if palavras_chave:
-            print("Palavras-chave:", ", ".join(palavras_chave))
-        else:
-            print("Palavras-chave: Não disponíveis")
-        
-        # Exibe os autores com a verificação de chave
-        print("Autores:")
-        if publicacao.get("authors"):
-            for autor in publicacao["authors"]:
-                nome = autor.get("name", "Nome não disponível")
-                afiliacao = autor.get("affiliation", "Afiliacao não disponível")
-                print(f"  - {nome} ({afiliacao})")
-        else:
-            print("Nenhum autor registrado.")
-        
-        print("Data de Publicação:", publicacao.get("publish_date", "Data não disponível"))
-        print("URL:", publicacao.get("url", "URL não disponível"))
 
 
 
@@ -749,9 +757,9 @@ def interface_comando():
         else:
             print(f"Não existem publicações com esse(a) '{criterio}'.")
 
-    #Funçoes de estatistica
+    #----Funçoes de estatistica---
 
-    ##Distribuição de publicações por ano
+    ##---Distribuição de publicações por ano--
     def topordena(par):
         return par[0]
 
@@ -789,6 +797,244 @@ def interface_comando():
         plt.tight_layout()
         plt.show()
 
+
+
+
+    ##---Distribuição por mês de um determinado ano---
+    def distribmesnoano(fnome, ano):
+        d = {}
+        encontrado = False
+        for pub in fnome:
+            data = pub.get('publish_date')
+            if data:
+                anos = data.split("-")[0]
+                mes = data.split("-")[1]
+                if anos == ano:
+                    encontrado = True
+                    if mes not in d:
+                        d[mes] = 1
+                    else:
+                        d[mes] = d[mes] + 1
+        if encontrado == False:
+            print(f"Em {ano} não houve publicações.")
+        lista = sorted(list(d.items()), key = topordena)
+        return dict(lista)
+
+    
+    def mesano(fnome, ano):
+        valores = list(distribmesnoano(fnome, ano).values())
+        labels = list(distribmesnoano(fnome, ano).keys())
+
+        plt.figure(figsize=(5, 5))
+        plt.bar(labels, valores, color = "darkseagreen")
+
+        
+        plt.title(f'Distribuição de publicações por mês de {ano}')
+
+        
+
+        for i, v in enumerate(valores):
+            plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
+
+        
+        plt.tight_layout()
+        plt.show()
+
+
+    ##---Número de publicações por autor (top 20 autores)---
+    def topOrdena(par):
+        return par[1]
+
+    def distribautores(fnome):
+        d = {}
+        for pub in fnome:
+            for autor in pub['authors']:
+                if autor['name'] not in d:
+                    d[autor['name']] = 1
+                else:
+                    d[autor['name']] = d[autor['name']] + 1
+            ordena = sorted(list(d.items()), key = topOrdena, reverse = True)
+            top20 = ordena[:20]
+            di = dict(top20)   
+        return di 
+
+    
+    def npubautor(fnome):
+        valores = list(distribautores(fnome).values())
+        labels = list(distribautores(fnome).keys())
+
+        plt.figure(figsize=(5, 5))
+        plt.bar(labels, valores, color = "orange")
+
+        
+        plt.title('Distribuição de publicações por autor Top20')
+
+        
+        plt.xticks(rotation=90, ha='right', fontsize=8)
+
+        for i, v in enumerate(valores):
+            plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
+
+        
+        plt.tight_layout()
+        plt.show()
+
+    ##---Distribuição de publicações de um autor por anos---
+    def topOrdena(par):
+        return par[0]
+
+    def distribpubdeautorporano(fnome, autor):
+        d = {}
+        for pub in fnome:
+            for a in pub['authors']:
+                if a['name'] == autor:
+                    data = pub.get('publish_date')
+                    if data:
+                        ano = data.split("-")[0]
+                        if ano not in d:
+                            d[ano] = 1
+                        else:
+                            d[ano] = d[ano] + 1
+            ordena = sorted(list(d.items()), key = topOrdena)
+            di = dict(ordena)
+        return di 
+
+    
+    def pubautorano(fnome,autor):
+        valores = list(distribpubdeautorporano(fnome,autor).values())
+        labels = list(distribpubdeautorporano(fnome,autor).keys())
+
+        plt.figure(figsize=(5, 5))
+        plt.bar(labels, valores, color = "gold")
+
+        
+        plt.title(f'Distribuição de publicação por ano de {autor}')
+
+        
+        plt.xticks(rotation=35, ha='right',fontsize=8)
+
+        for i, v in enumerate(valores):
+            plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
+
+        
+        plt.tight_layout()
+        plt.show()
+
+
+    ##---GRÁFICO5 : Distribuição de palavras-chave pela frequência (top20 palavras-chaves)---
+    def topOrdena(par):
+        return par[1]
+
+    def distribpalavra20(bd):
+        d = {}
+        for pub in bd:
+            palavras = pub.get("keywords")
+            if palavras:
+                listapal = palavras.split(",")
+                for pal in listapal:
+                    pal = pal.strip().strip(".")
+                    if pal not in d:
+                        d[pal] = 1
+                    else:
+                        d[pal] = d[pal] + 1
+            ordena = sorted(list(d.items()), key = topOrdena, reverse = True)
+            top20 = ordena[:20]
+            di = dict(top20)
+        return di
+
+    def distribpalavra(bd):
+        d = {}
+        for pub in bd:
+            palavras = pub.get("keywords")
+            if palavras:
+                listapal = palavras.split(",")
+                for pal in listapal:
+                    pal = pal.strip().strip(".")
+                    if pal not in d:
+                        d[pal] = 1
+                    else:
+                        d[pal] = d[pal] + 1
+            ordena = sorted(list(d.items()), key = topOrdena, reverse = True)
+            di = dict(ordena)
+        return list(di.keys())
+
+
+    def palavrafreq(fnome):
+        valores = list(distribpalavra20(fnome).values())
+        labels = list(distribpalavra20(fnome).keys())
+
+        plt.figure(figsize=(5, 5))
+        plt.bar(labels, valores, color = "gold")
+
+        
+        plt.title('Distribuição de palavra-chaves pela frequência Top20')
+
+        
+        plt.xticks(rotation=90, ha='right',fontsize=8)
+
+        for i, v in enumerate(valores):
+            plt.text(i, v, str(v), ha='center', va='bottom', fontsize=8)
+
+        
+        plt.tight_layout()
+        plt.show()
+
+    #---Gráfico Distribuição de palavras-chaves mais frequentes por ano---
+
+    def topOrdena(par):
+        return par[1]
+
+    def distribpalavraporano(fnome, ano):
+        d = {}
+        for pub in fnome:
+            data = pub.get('publish_date')
+            if data:
+                a = data.split("-")[0]
+                if a == ano:
+                    palavras = pub.get("keywords")
+                    if palavras:
+                        listapal = palavras.split(",")
+                        for pal in listapal:
+                            pal = pal.strip().strip(".")
+                            if pal not in d:
+                                d[pal] = 1
+                            else:
+                                d[pal] = d[pal] + 1
+        ordena = sorted(list(d.items()), key = topOrdena, reverse = True)
+        top20 = ordena[:20]
+        di = dict(top20)
+        return di 
+
+    
+
+    def palavrafreqano(fnome, ano):
+        cores_nomeadas = list(mcolors.CSS4_COLORS.keys())
+        random.shuffle(cores_nomeadas)
+        x = list(distribpalavraporano(fnome, ano).values())
+        labels = list(distribpalavraporano(fnome, ano).keys())
+        cores_personalizadas = cores_nomeadas[:len(labels)]
+
+        plt.figure(figsize=(9, 9))
+        plt.pie(x, labels=labels, radius=50, autopct='%1.1f%%', shadow=True, colors=cores_personalizadas,
+            wedgeprops={"linewidth": 1, "edgecolor": "white"})
+
+        plt.axis('equal')
+        plt.title(f'Distribuição de palavras-chave mais frequentes de {ano}')
+        plt.show()
+
+    def listanos(fnome):
+        a = []
+        for pub in fnome:
+            data = pub.get('publish_date')
+            if data:
+                ano = data.split("-")[0]  
+                if ano not in a: 
+                    a.append(ano) 
+        return sorted(a)
+
+
+        
+        
     #----------Estatística--------------------------------
     def estatística(dataset):
         print("\n===Selecione a oção que deseja ===")
@@ -805,9 +1051,23 @@ def interface_comando():
         while escolhaestatistica!="7":
             if escolhaestatistica=="1":
                 pubano(dataset)
-                
-
-
+            elif escolhaestatistica=="2":
+                anoestatistica=input("Introduza o ano que deseja consultar a distribuição de publicações por mês.")
+                mesano(dataset, anoestatistica)
+            elif escolhaestatistica=="3":
+                npubautor(dataset)
+            elif escolhaestatistica=="4":
+                autorestatistica=input("Introduza o nome do autor que deseja consultar.")
+                pubautorano(dataset,autorestatistica)
+            elif escolhaestatistica=="5":
+                palavrafreq(dataset)
+            elif escolhaestatistica=="6":
+                anopalavrasfreq=input("Introduza o ano que deseja consultar as palvras-chaves mais frequentes.")
+                palavrafreqano(dataset, anopalavrasfreq)
+            else:
+                print("Opção inválida.")
+            estatística(dataset)
+        menu_principal()
 
 
 
@@ -817,72 +1077,66 @@ def interface_comando():
 
     #--------Eliminar Publicação------
     def remover_pub(bd):
-        # Chama a função de consulta para buscar a publicação conforme o critério (Título, Autor, etc.)
-        pub = consultar_pub(bd)
-        for publicaçao in pub:
-            if publicaçao:  # Se alguma publicação foi encontrada
-                # Identifica o critério utilizado para consulta
-                criterio = ""
-                if 'title' in publicaçao:
-                    criterio = publicaçao['title']  # Caso tenha sido encontrado pelo título
-                elif 'authors' in publicaçao:
-                    criterio = publicaçao['authors'][0]['name']  # Caso tenha sido encontrado pelo autor
-                elif 'affiliation' in publicaçao:
-                    criterio = publicaçao['affiliation']  # Caso tenha sido encontrado pela afiliação
-                elif 'publish_date' in publicaçao:
-                    criterio = publicaçao['publish_date']  # Caso tenha sido encontrado pela data
-                elif 'keywords' in publicaçao:
-                    criterio = publicaçao['keywords']  # Caso tenha sido encontrado pelas palavras-chave
-                
-                confirmacao = input(f"\nTem certeza de que deseja remover as publicações relacionadas a '{criterio}'? (Sim/Não): ").lower().strip()
-                
-                if confirmacao == 'sim':
-                    publicacoes_removidas = 0
-                    
-                    # Remover as publicações baseadas no critério de consulta
-                    for i, p in enumerate(bd['publicacoes']):
-                        # Remover por título
-                        if 'title' in pub and p['title'].strip().lower() == pub['title'].strip().lower():
-                            bd['publicacoes'].pop(i)
-                            publicacoes_removidas += 1
-                            print(f"Publicação '{p['title']}' removida com sucesso.")
-                        
-                        # Remover por autor
-                        elif 'authors' in pub:
-                            for autor in p['authors']:
-                                if autor['name'].strip().lower() == pub['authors'][0]['name'].strip().lower():
-                                    bd['publicacoes'].pop(i)
-                                    publicacoes_removidas += 1
-                                    print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso.")
-                                    break
-                        
-                        # Remover por afiliação
-                        elif 'affiliation' in pub and p.get('authors'):
-                            for autor in p['authors']:
-                                if 'affiliation' in autor and autor['affiliation'].strip().lower() == pub['affiliation'].strip().lower():
-                                    bd['publicacoes'].pop(i)
-                                    publicacoes_removidas += 1
-                                    print(f"Publicação '{p['title']}' de '{autor['name']}' removida com sucesso devido à afiliação.")
-                                    break
+        """
+        Remove publicações de uma lista de dicionários com base em um critério fornecido pelo usuário.
+        
+        Parâmetros:
+        - bd: lista de dicionários, onde cada dicionário é uma publicação.
+        """
+        
+        criterio = input("Indique o parâmetro pelo qual pretende buscar o documento (title, abstract, keywords, doi, authors, url, pdf, publish_date): ").strip().lower()
+        
+        if criterio not in ['title', 'abstract', 'keywords', 'doi', 'authors', 'url', 'pdf', 'publish_date']:
+            print("O parâmetro inserido não é válido.")
+            return
 
-                        # Remover por data de publicação
-                        elif 'publish_date' in pub and p['publish_date'] == pub['publish_date']:
-                            bd['publicacoes'].pop(i)
-                            publicacoes_removidas += 1
-                            print(f"Publicação '{p['title']}' removida com sucesso pela data de publicação.")
-                        
-                        # Remover por palavras-chave
-                        elif 'keywords' in pub and pub['keywords'].lower() in p.get('keywords', "").lower():
-                            bd['publicacoes'].pop(i)
-                            publicacoes_removidas += 1
-                            print(f"Publicação '{p['title']}' removida com sucesso pelas palavras-chave.")
-                        
-                    if publicacoes_removidas == 0:
-                        print(f"Nenhuma publicação encontrada para o critério '{criterio}'.")
+        valor = input(f"Informe o valor do parâmetro '{criterio}': ").strip().lower()
+        if not valor:
+            print("Valor inválido. Operação cancelada.")
+            return
+
+        publicacoes_encontradas = []
+        for publicacao in bd:
+            if criterio == 'title' and valor in publicacao.get('title', '').strip().lower():  # Busca parcial no título
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'abstract' and valor in publicacao.get('abstract', '').strip().lower():  # Busca parcial no resumo
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'keywords':
+                keywords = publicacao.get('keywords', '').strip().lower()
+                if valor in [kw.strip() for kw in keywords.split(",")]:  # Busca parcial nas keywords
+                    publicacoes_encontradas.append(publicacao)
+            elif criterio == 'doi' and publicacao.get('doi', '').strip().lower() == valor:
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'authors' and any(valor == autor['name'].strip().lower() for autor in publicacao.get('authors', [])):
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'url' and valor in publicacao.get('url', '').strip().lower():  # Busca no URL
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'pdf' and valor in publicacao.get('pdf', '').strip().lower():  # Busca no PDF
+                publicacoes_encontradas.append(publicacao)
+            elif criterio == 'publish_date' and publicacao.get('publish_date', '').strip() == valor:
+                publicacoes_encontradas.append(publicacao)
+
+        if not publicacoes_encontradas:
+            print("Nenhuma publicação encontrada com o critério informado.")
+            return
+
+        removida = False
+        for pub in publicacoes_encontradas:
+            if not removida:
+                print(f"\nPublicação encontrada: {pub}")
+                confirmacao = input("Confirma ser esta a publicação que pretende apagar? (s/n): ").strip().lower()
+                if confirmacao == 's':
+                    bd.remove(pub)
+                    print(f"Publicação removida com sucesso.")
+                    removida = True
                 else:
-                    print("Remoção cancelada.")
-            else:
-                print("Nenhuma publicação encontrada para remoção.")
+                    print("Publicação não removida.")
+        
+        print("Operação concluída.")
+
+
+
+    
 
     
 
