@@ -6,21 +6,24 @@
 
 #### Índice
 1. [Introdução](#introdução)
-2. [Requisitos do Sistema ](#requisitos-do-sistema )
-    - 2.1 [Carregamento da Base Dados](#carregamento-da-base-de-dados)
-    - 2.2 [Gravar Base de Dados](gravar-base-de-dados:)
-    - 2.3 [Consultar Publicações](#36-consultas-personalizadas)
-    - 2.4 [Análise de Publicações](#37-análise-de-publicações)
-    - 2.5 [Importação de Dados](#38-importação-de-dados)
-    - 2.6 [Exportação Parcial de Dados](#39-exportação-parcial-de-dados)
-    - 2.7 [Dados Estatíticos de Publicações](#42-dados-estatísticos-de-publicações)
-    - 2.8 [Eliminar Publicações](#43-elimar-publicações)
-3. [Ficheiro `Projeto_Sistema de Análise de Publicações Científicas.py`](#ficheiro-projeto_sistema-de-análise-de-publicações-científicaspy)
-    - 3.1 [Layout Principal](#61-layout-principal)
-    - 3.2 [Fluxo Detalhado para Cada Botão](#79-fluxo-detalhado-para-cada-botão)
-    - 3.3 [Janela de Ajuda](#-janela-de-ajuda)
-4. [Módulos](#54-módulos-)
+2. [Requisitos do Sistema](#requisitos-do-sistema)
+    - 2.1.[Carregar Base de Dados](#carregar-base-de-dados)
+    - 2.2 [Guardar Base de dados](#guardar-base-de-dados)
+    - 2.3 [Consultar Publicação](#consultar-publicação)
+    - 2.4 [Analisar Publicação](#analisar-publicação)
+    - 2.5 [Importar Dados](#importar-dados)
+    - 2.6 [Exportação Parcial ](#exportação-parcial)
+    - 2.7 [Atualizar Publicação](#atualizar-publicação)
+    - 2.8 [Criar Publicação](#criar-publicação)
+    - 2.9 [Estatística](#estatística)
+    - 2.10 [Eliminar Publicação](#eliminar-publicação)
+3. [Projeto Sistema de Análise de Publicações Científicas](#projeto-sistema-de-análise-de-publicações-científicas)
+    - 3.1 [Janela Principal](#janela-principal)
+    - 3.2 [Fluxo de execução](#fluxo-de-execução)
+    - 3.3 [Janela de Ajuda](#janela-de-ajuda)
+4. [Módulos](#módulos)
 5. [Conclusão](#conclusão)
+
 
 
 ### Introdução
@@ -60,6 +63,7 @@ O utilizador tem a possibilidade de escolher o modo que prefere utilizar a aplic
 ![Fig.1. Janela principal Interface Gráfica](./Imagens/1.png)
 ![Fig.2. Menu Principal CLI](./Imagens/2.png)
 
+### Projeto Sistema de Análise de Publicações Científicas
 
 #### Janela Principal
 A janela principal da interface gráfica é definida pela função interface_grafica(), que constitui o menu de opções do sistema. A estrutura desta janela está organizada em dois grandes blocos: à esquerda estão o nome da aplicação bem como um botão de ajuda e um de saída, e à direita estão os botões que permitem realizar as operações disponíveis.
