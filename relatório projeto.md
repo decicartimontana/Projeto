@@ -76,12 +76,64 @@ Se o utilizador escolher a opção "Sair", o programa encerra a execução e fec
 Este fluxo e layout garantem que a interface gráfica seja intuitiva e permitem que o utilizador navegue facilmente entre as operações recebendo o devido feedback sobre as ações executadas.
 
 ##### Carregar Base de Dados
-* Ao pressionar o botão "Carregar Ficheiro" na interface gráfica, é aberta uma janela onde o utilizador pode selecionar um ficheiro .json no seu computador. Após a seleção, o sistema chama a função carregar_dataset(), que tem como objetivo carregar os dados desse ficheiro para a estrutura em memória (dataset).
+* Ao pressionar o botão "Carregar BD" na interface gráfica, é aberta uma janela onde o utilizador pode selecionar um ficheiro .json no seu computador. Após a seleção, o sistema chama a função carregar_dataset(), que tem como objetivo carregar os dados desse ficheiro para a estrutura em memória (dataset).
 #################Imagemmmm
 
 * A função carregar_dataset() utiliza a função open() para abrir o ficheiro selecionado e, em seguida, usa json.load() para carregar o conteúdo do ficheiro para uma variável em memória. Caso o ficheiro esteja vazio, será exibida uma mensagem de erro. Caso contrário, a função confirma o sucesso do carregamento e informa a quantidade de publicações carregadas.
 ##########################Imagemmmmmm
 
+##### Guardar Base de dados
++ Ao pressionar o botão "Guardar BD" a aplicação permite salvar a base de dados, um processo essencial para o funcionamento das funcionalidades. Até que a base de dados seja guardada, uma janela de erro lembrará o utilizador dessa necessidade. Após a gravação bem-sucedida, uma mensagem de confirmação será exibida, assegurando ao utilizador que os dados foram salvos com sucesso e estão prontos para uso. Esta abordagem garante a consistência e segurança dos dados, proporcionando uma experiência de utilização mais fluida e eficiente.
+##############imagem
+* O botão está associado à função guardar_dataset(), que permite com que este execute a sua função corretamente.
+
+##### Consultar Publicação
+
+* A aplicação permite consultar tarefas com base em critérios como título, autores, afiliação, palavras-chave e data de publicação. A pesquisa apresenta resultados que correspondem aos critérios selecionados.
+###########imagem da paina inicial de consulta
+* Ao realizar a pesquisa, se houver várias tarefas correspondentes, ao clicar na tarefa de interesse, uma nova janela será aberta, mostrando as informações de forma organizada.
+######imagem 
+* Quando ativados os botões, à exceção da data de publicação, são apresentadas as opções disponíveis na base de dados para o respetivo parâmetro selecionado. Para a exceção, é apresentado o botão "Escolha a data" que permite ao utilizador selecionar livremente a opção.
+* Caso não seja efetuada uma pesquisa coerente com a base de dados será exibida uma janela de Erro que alertará o utilizador da falha cometida.
+########### Imagem da janelas de Erro
+##### Analisar Publicação
+* A funcionalidade analisar publicação permite analisar as publicões por autor ou palavras-chave. Caso o utilizador selecione o botão em questão, abrirá uma janela que nos o permitir observar a lista ordenada de autores/palavras-chave anafebticamente ou pela frequência do parâmetro, opções que serão possíveis selecionar pelo próprio.
+#######imagem 
+* Ambos os botões estão associados a funções responsáveis por percorrer o dataset e adicionar o conteúdo que vai encontrando no valor da chave correspondente ao parâmetro selecionado a uma lista definida inicialmente como vazia, caso o nome do autor ainda não conste na lista. 
+###########imagem
+* Caso seja de interesse analisar uma publicação específica, este terá oportunidade de a selecionar para que sejam exibidos numa nova janela os detalhes da mesma.
+#########imagem
+* A esta funcionalidade também se encontram associadas janelas de erro que têm como objetivo orientar o utilizador a fazer um uso correto das opções disponibilizadas.
+########imagem
+
+##### Importar Dados
+* A função de importar base de dados permite ao utilizador selecionar o ficheiro JSON a ser importado. Assim, através de um botão de navegação é possível localizá-lo. Uma vez que o utilizador clique em "Carregar", a função importar_dados() é chamada para processar e adicionar os dados do ficheiro selecionado à base de dados existente
+* Após a importação bem-sucedida, a janela de importação é fechada, e a interface principal da aplicação exibe uma mensagem de confirmação, assegurando ao utilizador que a base de dados foi adicionada com sucesso. Esta funcionalidade garante que a aplicação pode trabalhar com novos conjuntos de dados.
+##### Exportação Parcial 
+* Quando o utilizador clica na opção "Exportação Parcial", o sistema apresenta uma janela para que este escolha um critério de consulta entre opções: Título, Data de Publicação, Autor, Afiliação ou Palavra-chave.
+
+* O utilizador pode então inserir um valor no campo de entrada e clicar em "Procurar" para filtrar as publicações com base no critério selecionado. Se forem encontradas publicações, estas são exibidas, juntamente com a contagem dos resultados. Caso contrário, o sistema informa que não foram encontradas publicações.
+
+* Uma vez filtrados os dados, o utilizador tem a possibilidade de exportá-los para um ficheiro JSON. Para isso, é aberta uma nova janela onde pode escolher o local e o nome do ficheiro. Após clicar em "Salvar", os dados são exportados e uma mensagem de confirmação é exibida. Se o utilizador não inserir um nome válido ou tentar exportar sem resultados filtrados, o sistema apresenta mensagens de erro ou alerta.
+
+* A aplicação ainda garante a gestão adequada de eventos e janelas, permitindo que o utilizador cancele a operação em qualquer momento e que a interface feche de forma segura quando necessário.
+##### Atualizar Publicação
+* Esta opção implementa um sistema de atualização das publicações, permitindo ao utilizador consultar e modificar dados específicos de cada publicação. O processo começa com a verificação da base de dados: se não estiver carregada ou se não tiver sido guardada previamente, o sistema emite um erro. 
+
+* O utilizador é então apresentado com opções para consultar a publicação por título, autor, afiliação, data de publicação ou palavras-chave. Para cada opção, o sistema solicita que insira o valor e, se encontrar resultados correspondentes, apresenta-os numa lista. O utilizador pode então selecionar uma publicação para editar. 
+
+* A edição permite alterar todos os campos disponíveis na estrutura do dataset. Nesta secção, exitem botões para adicionar ou remover autores e ainda um botão para selecionar a data diretamente do calendário. De forma a facilitar a alteração, são exibidos os detalhes característicos antes da atualização.Antes de salvar as alterações, o código valida se todos os campos obrigatórios foram preenchidos. Caso contrário, um erro é exibido. 
+
+* Por fim, ao salvar as modificações, o sistema atualiza a base de dados e notifica o utilizador do sucesso na alteração da publicação. Este fluxo assegura que os dados da base estão sempre atualizados e corretamente mantidos.
+##### Criar Publicação
+* A função criar uma nova publicação abre uma janela com um formulário detalhado para inserir as informações da mesma. O formulário inclui campos obrigatórios, característicos da estrutura do dataset. O botão "Salvar" permanece inativo até que todos os campos obrigatórios sejam preenchidos. Os autores podem ser adicionados individualmente, com nome e afiliação, utilizando um botão específico para essa função. Caso os campos de nome ou afiliação não estejam preenchidos, uma mensagem de erro será exibida.
+* Após preencher todos os campos obrigatórios, o utilizador pode salvar a nova publicação. A função cria um dicionário com todos os detalhes da publicação e chama a função criarpublicacao( ) para inserir os dados na base de dados existente. Uma mensagem de confirmação é exibida na interface principal, indicando que a publicação foi adicionada com sucesso. Esta função garante a entrada precisa e completa dos dados.
+##### Estatística
+* A função responsável por gerar estatísticas é crucial para a análise dos dados na aplicação. A aplicação atualiza a interface para indicar que os dados estatísticos estão sendo produzidos e abre uma nova janela com várias opções de gráficos. Estas opções incluem a distribuição de publicações por ano, distribuição de publicações por mês de um ano, número de publicações por autor, distribuição de publicações de um autor por anos, distribuição de palavras-chave pela sua frequência e distribuição de palavras-chave mais frequentes por ano.
+Cada opção de gráfico inicia uma thread separada para calcular e exibir os gráficos estatísticos, garantindo que a aplicação continua a responder enquanto os dados são processados. Para gráficos que requerem seleção adicional, como a distribuição por mês de um determinado ano ou por autor, janelas adicionais permitem ao utilizador especificar o ano ou o autor desejado.
+##### Eliminar Publicação 
+
+* Este código permite eliminar publicações de uma base de dados. Quando o evento "Eliminar" é acionado, o utilizador pode procurar uma publicação pelos parâmetros: título, autor, afiliação, palavras-chave e data de publicação, e, se encontrada, escolher eliminá-la. Antes de eliminar, o sistema solicita confirmação. Se o utilizador confirmar, a publicação é removida da base de dados e a lista é atualizada; caso contrário, a operação é cancelada. Se não houver resultados ou a publicação não for selecionada, o sistema exibe mensagens de erro.
 
 
 
